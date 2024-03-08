@@ -55,6 +55,7 @@ function rgbaColor(red, green, blue, alpha = 1.0) {
 }
 
 export const ncmpcpp = VteTerminal({
+  className: "ncmpcpp",
   hexpand: true,
   setup: (self) => {
     self.spawn_sync(

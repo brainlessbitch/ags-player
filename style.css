@@ -9,11 +9,7 @@
 
 window {
   font-family: "UbuntuNerdFont";
-  background: @base1;
-}
-
-frame {
-  margin: 4em 2em;
+  background: @base0;
 }
 
 .cover {
@@ -22,6 +18,14 @@ frame {
   border-radius: 6px;
   background-size: 100% auto;
   background-repeat: no-repeat;
+}
+
+.coverBox {
+  background: @base1;
+}
+
+.coverBox > frame {
+  margin: 4em 2em;
 }
 
 .controls {
@@ -33,7 +37,7 @@ frame {
   color: @accent;
 }
 
-vte-terminal {
+.ncmpcpp {
   font-family: "UbuntuMonoNerdFont";
   font-size: 12px;
   padding: 4em 2em 2em;
