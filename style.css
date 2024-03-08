@@ -1,0 +1,53 @@
+* {
+  all: unset;
+}
+
+@define-color base0 #292a30;
+@define-color base1 #2f3037;
+@define-color base2 #393b44;
+@define-color accent #ff7ab2;
+
+window {
+  font-family: "UbuntuNerdFont";
+  background: @base1;
+}
+
+frame {
+  margin: 4em 2em;
+}
+
+.cover {
+  min-width: 240px;
+  min-height: 240px;
+  border-radius: 6px;
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+}
+
+.controls {
+  padding: 1em 2em;
+  background: @base2;
+}
+
+.on {
+  color: @accent;
+}
+
+vte-terminal {
+  font-family: "UbuntuMonoNerdFont";
+  font-size: 12px;
+  padding: 4em 2em 2em;
+}
+
+scale {
+  min-height: 3px;
+}
+
+scale trough {
+  background: alpha(@base2, 0.5);
+}
+
+scale highlight {
+  min-height: 6px;
+  background: @accent;
+}
