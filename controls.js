@@ -1,6 +1,6 @@
-const Mpris = await Service.import("mpris");
+import Mpd from "./mpd.js";
 
-function length2string(length) {
+function lengthString(length) {
   return (
     `${Math.floor(length / 60)
       .toString()
@@ -12,23 +12,26 @@ function length2string(length) {
 }
 
 const previousButton = Widget.Button({
-  onClicked: () => Mpris.getPlayer("mpd")?.previous(),
+  onClicked: () => Mpd.previous(),
   child: Widget.Icon("media-skip-backward-symbolic"),
 });
 
 const playPauseButton = Widget.Button({
-  onClicked: () => Mpris.getPlayer("mpd")?.playPause(),
+  onClicked: () => Mpd.playPause(),
   child: Widget.Icon({
     setup: (self) =>
-      self.hook(Mpris, () => {
-        const playbackStatus = Mpris.getPlayer("mpd")?.playBackStatus;
-        self.icon = `media-playback-${playbackStatus === "Playing" ? "pause" : "start"}-symbolic`;
-      }),
+      self.hook(
+        Mpd,
+        () => {
+          self.icon = `media-playback-${Mpd.state === "play" ? "pause" : "start"}-symbolic`;
+        },
+        "notify::state",
+      ),
   }),
 });
 
 const nextButton = Widget.Button({
-  onClicked: () => Mpris.getPlayer("mpd")?.next(),
+  onClicked: () => Mpd.next(),
   child: Widget.Icon("media-skip-forward-symbolic"),
 });
 
@@ -36,69 +39,57 @@ const songInfoLabel = Widget.Label({
   truncate: "end",
   maxWidthChars: 36,
   setup: (self) =>
-    self.hook(Mpris, () => {
-      const artisits = Mpris.getPlayer("mpd")?.trackArtists.join(";");
-      const title = Mpris.getPlayer("mpd")?.trackTitle;
-      const album = Mpris.getPlayer("mpd")?.trackAlblum;
-      self.label = `${artisits} - ${title} / ${album}`;
+    self.hook(Mpd, () => {
+      self.label = `${Mpd.Artist} - ${Mpd.Title} / ${Mpd.Album}`;
     }),
 });
 
 const positionLabel = Widget.Label({
   setup: (self) =>
-    self.poll(1000, () => {
-      const position = Mpris.getPlayer("mpd")?.position;
-      const length = Mpris.getPlayer("mpd")?.length;
-      self.label = `${length2string(position)} / ${length2string(length)}`;
+    self.poll(500, () => {
+      Mpd.send("status").then((msg) => {
+        const elapsed = msg.match(/elapsed: (\d+\.\d+)/)[1];
+        self.label = `${lengthString(elapsed || 0)} / ${lengthString(Mpd.duration || 0)}`;
+      });
     }),
 });
 
 const loopButton = Widget.Button({
-  onClicked: () => Mpris.getPlayer("mpd")?.loop(),
+  onClicked: () => Mpd.toggleRepeat(),
   child: Widget.Icon({
     icon: "media-playlist-repeat-symbolic",
     setup: (self) =>
-      self.hook(Mpris, () => {
-        const loopStatus = Mpris.getPlayer("mpd")?.loopStatus;
-      }),
+      self.hook(
+        Mpd,
+        () => self.toggleClassName("on", +Mpd.repeat),
+        "notify::repeat",
+      ),
   }),
 });
 
 const shuffleButton = Widget.Button({
-  onClicked: () => Mpris.getPlayer("mpd")?.shuffle(),
+  onClicked: () => Mpd.toggleShuffle(),
   child: Widget.Icon("media-playlist-shuffle-symbolic"),
+  setup: (self) =>
+    self.hook(
+      Mpd,
+      () => self.toggleClassName("on", +Mpd.random),
+      "notify::random",
+    ),
 });
 
-export const positionSlider = () => {
-  const poll = Variable(0, {
-    poll: [
-      1000,
-      () => {
-        const mpd = Mpris.getPlayer("mpd");
-        return mpd?.position / mpd?.length || 0;
-      },
-    ],
-  });
-
-  poll.stopPoll();
-  return Widget.Slider({
-    value: poll.bind(),
-    drawValue: false,
-    onChange: ({ value }) => {
-      const mpd = Mpris.getPlayer("mpd");
-      mpd.position = value * mpd?.length;
-    },
-    setup: (self) => {
-      self.hook(
-        Mpris,
-        () => {
-          Mpris.getPlayer("mpd") ? poll.startPoll() : poll.stopPoll();
-        },
-        "notify::players",
-      );
-    },
-  });
-};
+export const positionSlider = Widget.Slider({
+  drawValue: false,
+  onChange: ({ value }) => Mpd.seekCur(value * Mpd.duration),
+  setup: (self) => {
+    self.poll(500, () => {
+      Mpd.send("status").then((msg) => {
+        const elapsed = msg.match(/elapsed: (\d+\.\d+)/)[1];
+        self.value = elapsed / Mpd.duration || 0;
+      });
+    });
+  },
+});
 
 export const controls = Widget.Box({
   className: "controls",

@@ -16,7 +16,7 @@ Window({
         vexpand: true,
         children: [cover, ncmpcpp],
       }),
-      positionSlider(),
+      positionSlider,
       controls,
     ],
   }),
