@@ -333,12 +333,15 @@ class Mpd extends Service {
       if (deprecatedKeys.includes(keyValue[1])) continue;
       if (!this.hasOwnProperty(`_${keyValue[1]}`)) continue;
       this.updateProperty(keyValue[1], keyValue[2]);
-      this.changed(keyValue[1]);
+      this.emit("changed");
     }
   }
 
-  toggleRepeat = () => this.send(`repeat ${+this._repeat ? "0" : "1"}`);
+  setCrossfade = (seconds) => this.send(`crossfade ${seconds}`);
+  setVolume = (volume) => this.send(`setvol ${volume}`);
+
   toggleShuffle = () => this.send(`random ${+this._random ? "0" : "1"}`);
+  toggleRepeat = () => this.send(`repeat ${+this._repeat ? "0" : "1"}`);
 
   next = () => this.send("next");
   playPause = () => this.send(`pause ${this._state === "pause" ? "0" : "1"}`);
@@ -351,6 +354,8 @@ class Mpd extends Service {
   seekCur = (time) => this.send(`seekcur ${time}`);
   previous = () => this.send("previous");
   stop = () => this.send("stop");
+
+  clearQueue = () => this.send("clear");
 }
 
 const service = new Mpd();

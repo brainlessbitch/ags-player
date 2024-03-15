@@ -1,5 +1,9 @@
 import Mpd from "./mpd.js";
 
+import MarqueeLabel from "./marqueeLabel.js";
+
+import { ncmpcpp } from "./ncmpcpp.js";
+
 function lengthString(length) {
   return (
     `${Math.floor(length / 60)
@@ -35,22 +39,37 @@ const nextButton = Widget.Button({
   child: Widget.Icon("media-skip-forward-symbolic"),
 });
 
+/*
 const songInfoLabel = Widget.Label({
   truncate: "end",
   maxWidthChars: 36,
   setup: (self) =>
     self.hook(Mpd, () => {
-      self.label = `${Mpd.Artist} - ${Mpd.Title} / ${Mpd.Album}`;
+      self.label = `${Mpd.Artist || "No artist"} - ${Mpd.Title || "No title"} / ${Mpd.Album || "No album"}`;
     }),
+});
+*/
+
+const songInfoLabel = new MarqueeLabel({
+  label: "No artist - No title / No album",
+  scrollSpeed: 1,
+  hexpand: true,
+  setup: (self) => {
+    self.hook(Mpd, () => {
+      self.label = `${Mpd.Artist || "No artist"} - ${Mpd.Title || "No title"} / ${Mpd.Album || "No album"}`;
+    });
+  },
 });
 
 const positionLabel = Widget.Label({
   setup: (self) =>
     self.poll(500, () => {
-      Mpd.send("status").then((msg) => {
-        const elapsed = msg.match(/elapsed: (\d+\.\d+)/)[1];
-        self.label = `${lengthString(elapsed || 0)} / ${lengthString(Mpd.duration || 0)}`;
-      });
+      Mpd.send("status")
+        .then((msg) => {
+          const elapsed = msg?.match(/elapsed: (\d+\.\d+)/)?.[1];
+          self.label = `${lengthString(elapsed || 0)} / ${lengthString(Mpd.duration || 0)}`;
+        })
+        .catch((error) => logError(error));
     }),
 });
 
@@ -78,21 +97,29 @@ const shuffleButton = Widget.Button({
     ),
 });
 
+const playlistButton = Widget.Button({
+  onClicked: () => ncmpcpp.feed_child("1"),
+  child: Widget.Icon("view-list-symbolic"),
+});
+
 export const positionSlider = Widget.Slider({
   drawValue: false,
   onChange: ({ value }) => Mpd.seekCur(value * Mpd.duration),
   setup: (self) => {
     self.poll(500, () => {
-      Mpd.send("status").then((msg) => {
-        const elapsed = msg.match(/elapsed: (\d+\.\d+)/)[1];
-        self.value = elapsed / Mpd.duration || 0;
-      });
+      Mpd.send("status")
+        .then((msg) => {
+          const elapsed = msg?.match(/elapsed: (\d+\.\d+)/)?.[1];
+          self.value = elapsed / Mpd.duration || 0;
+        })
+        .catch((error) => logError(error));
     });
   },
 });
 
 export const controls = Widget.Box({
   className: "controls",
+  hexpand: true,
   spacing: 24,
   children: [
     previousButton,
@@ -102,5 +129,6 @@ export const controls = Widget.Box({
     positionLabel,
     loopButton,
     shuffleButton,
+    playlistButton,
   ],
 });

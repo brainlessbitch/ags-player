@@ -10,6 +10,7 @@ import { positionSlider, controls } from "./controls.js";
 
 Window({
   child: Widget.Box({
+    className: "mainBox",
     vertical: true,
     children: [
       Widget.Box({
@@ -28,6 +29,6 @@ Window({
 });
 
 App.iconTheme = "adwaita";
-export default {
+App.config({
   style: "./style.css",
-};
+});

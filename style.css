@@ -12,6 +12,10 @@ window {
   background: @base0;
 }
 
+.mainBox {
+  background: @base2;
+}
+
 .cover {
   min-width: 240px;
   min-height: 240px;
@@ -33,11 +37,23 @@ window {
   background: @base2;
 }
 
+.controls > button {
+  transition: color 0.25s ease;
+}
+
+.controls > button:active {
+  color: @accent;
+}
+
 .on {
   color: @accent;
 }
 
-.ncmpcpp {
+.controls > drawing-area {
+  font-family: "UbuntuNerdFont";
+}
+
+vte-terminal {
   font-family: "UbuntuMonoNerdFont";
   font-size: 12px;
   padding: 4em 2em 2em;
@@ -48,7 +64,7 @@ scale {
 }
 
 scale trough {
-  background: alpha(@base2, 0.5);
+  background: alpha(@accent, 0.5);
 }
 
 scale highlight {
